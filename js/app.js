@@ -59,7 +59,6 @@ window.addEventListener('DOMContentLoaded', () => {
         currentUserDisplay.textContent = `${user.username} (${user.role})`;
         setupPermissions(user.role);
         setupNavigation();
-        renderUsersView(); // Initial render for the users view
     }
 
     function setupPermissions(role) {
@@ -80,11 +79,21 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function switchView(viewId) {
+    async function switchView(viewId) {
+        // Hide all views
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active-view'));
+
         const newView = document.getElementById(viewId);
         if (newView) {
+            // Render view content on demand
+            if (viewId === 'users-view') {
+                await renderUsersView();
+            }
+            // Add other cases for other views here as they are built
+
+            // Show the new view
             newView.classList.add('active-view');
+            log(`Switched to ${viewId}`);
         }
     }
 
@@ -113,31 +122,38 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // --- User Management View ---
     async function renderUsersView() {
-        if (!Auth.checkPermission('Manager')) {
-            usersView.innerHTML = '<p>ليس لديك الصلاحية لعرض هذه الصفحة.</p>';
-            return;
+        try {
+            if (!Auth.checkPermission('Manager')) {
+                usersView.innerHTML = '<p>ليس لديك الصلاحية لعرض هذه الصفحة.</p>';
+                return;
+            }
+
+            usersView.innerHTML = '<p>جارٍ تحميل المستخدمين...</p>'; // Loading indicator
+
+            const users = await Auth.getAllUsers();
+            let userListHtml = '<ul>' + users.map(u => `<li>${u.username} (${u.role}) <button data-userid="${u.id}" class="delete-user-btn">حذف</button></li>`).join('') + '</ul>';
+
+            let addUserFormHtml = `
+                <hr>
+                <h3>إضافة مستخدم جديد</h3>
+                <form id="add-user-form">
+                    <input type="text" id="new-username" placeholder="اسم المستخدم" required>
+                    <input type="password" id="new-pin" placeholder="PIN" required>
+                    <select id="new-role">
+                        <option value="Cashier">كاشير</option>
+                        <option value="Manager">مدير</option>
+                        <option value="Owner">مالك</option>
+                    </select>
+                    <button type="submit">إضافة</button>
+                    <p id="add-user-error" class="error-message"></p>
+                </form>
+            `;
+
+            usersView.innerHTML = '<h2>إدارة المستخدمين</h2>' + userListHtml + addUserFormHtml;
+        } catch (error) {
+            log(`Error rendering users view: ${error.message}`);
+            usersView.innerHTML = `<p class="error-message">حدث خطأ أثناء تحميل بيانات المستخدمين. الرجاء المحاولة مرة أخرى.</p>`;
         }
-
-        const users = await Auth.getAllUsers();
-        let userListHtml = '<ul>' + users.map(u => `<li>${u.username} (${u.role}) <button data-userid="${u.id}" class="delete-user-btn">حذف</button></li>`).join('') + '</ul>';
-
-        let addUserFormHtml = `
-            <hr>
-            <h3>إضافة مستخدم جديد</h3>
-            <form id="add-user-form">
-                <input type="text" id="new-username" placeholder="اسم المستخدم" required>
-                <input type="password" id="new-pin" placeholder="PIN" required>
-                <select id="new-role">
-                    <option value="Cashier">كاشير</option>
-                    <option value="Manager">مدير</option>
-                    <option value="Owner">مالك</option>
-                </select>
-                <button type="submit">إضافة</button>
-                <p id="add-user-error" class="error-message"></p>
-            </form>
-        `;
-
-        usersView.innerHTML = '<h2>إدارة المستخدمين</h2>' + userListHtml + addUserFormHtml;
     }
 
     // Event delegation for dynamically created buttons
