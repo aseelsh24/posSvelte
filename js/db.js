@@ -83,10 +83,65 @@ const DB = (() => {
         });
     }
 
+    // --- Generic CRUD Functions ---
+
+    function get(storeName, id) {
+        return new Promise((resolve, reject) => {
+            const store = getStore(storeName);
+            const request = store.get(id);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    function getAll(storeName) {
+        return new Promise((resolve, reject) => {
+            const store = getStore(storeName);
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    function put(storeName, item) {
+        return new Promise((resolve, reject) => {
+            const store = getStore(storeName, 'readwrite');
+            const request = store.put(item);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    function del(storeName, id) {
+        return new Promise((resolve, reject) => {
+            const store = getStore(storeName, 'readwrite');
+            const request = store.delete(id);
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    // --- Specific Getters ---
+
+    function getUserByUsername(username) {
+        return new Promise((resolve, reject) => {
+            const store = getStore('users');
+            const index = store.index('username');
+            const request = index.get(username);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
     return {
         init,
         bulkPut,
         count,
-        log
+        log,
+        get,
+        getAll,
+        put,
+        delete: del,
+        getUserByUsername
     };
 })();

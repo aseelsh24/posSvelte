@@ -7,24 +7,55 @@
     <title>إدارة البقالة</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="apple-touch-icon" href="assets/icon-192.png">
 </head>
 <body>
-    <header>
-        <h1>نظام إدارة البقالة</h1>
-    </header>
-    <main id="app-root">
-        <nav>
-            <button id="load-data-btn">تحميل بيانات عيّنة</button>
-        </nav>
-        <div id="view-container">
-            <p>التطبيق جاهز. قم بتحميل البيانات النموذجية للبدء.</p>
-        </div>
-        <div id="status-log" dir="ltr" style="font-family: monospace; font-size: 12px; white-space: pre-wrap; background: #eee; padding: 10px; margin-top: 20px; max-height: 150px; overflow-y: auto;"></div>
-    </main>
 
-    <!-- App Scripts -->
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <div class="login-container">
+            <h2>تسجيل الدخول</h2>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="اسم المستخدم" required>
+                <input type="password" id="pin" placeholder="PIN" required inputmode="numeric" pattern="[0-9]*">
+                <button type="submit">دخول</button>
+                <p id="login-error" class="error-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application (Hidden by default) -->
+    <div id="main-app" class="hidden">
+        <header>
+            <h1>نظام إدارة البقالة</h1>
+            <div class="header-controls">
+                <span id="current-user-display"></span>
+                <button id="logout-btn">تسجيل الخروج</button>
+            </div>
+        </header>
+        <main id="app-root">
+            <nav>
+                <button class="nav-btn" data-view="pos-view">نقطة البيع</button>
+                <button class="nav-btn" data-view="inventory-view">المخزون</button>
+                <button class="nav-btn" data-view="reports-view">التقارير</button>
+                <button class="nav-btn" data-view="users-view" id="users-nav-btn">المستخدمين</button>
+                <button class="nav-btn" data-view="settings-view" id="settings-nav-btn">الإعدادات</button>
+            </nav>
+
+            <div id="view-container">
+                <!-- Views will be rendered here -->
+                <div id="pos-view" class="view active-view"><p>عرض نقطة البيع.</p></div>
+                <div id="inventory-view" class="view"><p>عرض المخزون.</p></div>
+                <div id="reports-view" class="view"><p>عرض التقارير.</p></div>
+                <div id="users-view" class="view"></div> <!-- User management UI will be built here -->
+                <div id="settings-view" class="view"><p>عرض الإعدادات. يجب أن يكون المالك فقط قادرًا على رؤية هذا.</p></div>
+            </div>
+
+            <div id="status-log" dir="ltr"></div>
+        </main>
+    </div>
+
     <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
