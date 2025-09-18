@@ -28,12 +28,17 @@ window.addEventListener('DOMContentLoaded', () => {
         await DB.init();
 
         // 3. Check for initial setup
-        const userCount = await DB.count('users');
-        if (userCount === 0) {
-            log('No users found. Creating initial Owner account...');
-            await Auth.addUser('owner', '0000', 'Owner');
-            log('Initial account created. Username: owner, PIN: 0000');
-            alert('تم إنشاء حساب المالك الأولي.\nاسم المستخدم: owner\nالرقم السري: 0000\nالرجاء تسجيل الدخول وتغيير الرقم السري.');
+        try {
+            const userCount = await DB.count('users');
+            if (userCount === 0) {
+                log('No users found. Creating initial Owner account...');
+                await Auth.addUser('owner', '0000', 'Owner');
+                log('Initial account created. Username: owner, PIN: 0000');
+                alert('تم إنشاء حساب المالك الأولي.\nاسم المستخدم: owner\nالرقم السري: 0000\nالرجاء تسجيل الدخول وتغيير الرقم السري.');
+            }
+        } catch (error) {
+            log(`FATAL: Could not create initial user. Error: ${error.message}`);
+            alert(`حدث خطأ فادح أثناء إعداد المستخدم الأولي. يرجى مسح بيانات الموقع والمحاولة مرة أخرى. الخطأ: ${error.message}`);
         }
 
         // 4. Check session
