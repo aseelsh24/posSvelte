@@ -1,0 +1,24 @@
+{
+  "products": [
+    { "id": "prod-1", "name": "لبن كامل الدسم", "barcode": "6291003000111", "purchasePrice": 2.50, "salePrice": 3.00, "stock": 100 },
+    { "id": "prod-2", "name": "خبز أبيض", "barcode": "6291003000222", "purchasePrice": 1.00, "salePrice": 1.50, "stock": 50 },
+    { "id": "prod-3", "name": "بيض (12 حبة)", "barcode": "6291003000333", "purchasePrice": 5.00, "salePrice": 6.00, "stock": 30 }
+  ],
+  "customers": [
+    { "id": "cust-1", "name": "زبون عام", "phone": "000-000-0000", "balance": 0 }
+  ],
+  "suppliers": [
+    { "id": "supp-1", "name": "شركة الألبان المتحدة", "phone": "800-SUP-MILK", "balance": 0 }
+  ],
+  "users": [
+    { "id": "user-1", "username": "admin", "pin": "1234" }
+  ],
+  "settings": [
+    { "key": "storeName", "value": "بقالة الحي" },
+    { "key": "currency", "value": "SAR" }
+  ],
+  "counters": [
+      { "id": "saleInvoice", "value": 1000 },
+      { "id": "purchaseInvoice", "value": 500 }
+  ]
+}
