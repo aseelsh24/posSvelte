@@ -1,56 +1,55 @@
-const CACHE_NAME = 'baqala-cache-v1';
-const urlsToCache = [
+const CACHE_NAME = 'baqala-cache-v2'; // Incremented version
+const STATIC_ASSETS = [
     '/',
     '/index.html',
     '/css/styles.css',
     '/js/app.js',
     '/js/db.js',
-    '/js/pos.js',
-    '/js/inventory.js',
-    '/js/reports.js',
     '/manifest.webmanifest'
-    // NOTE: Add asset URLs here later (e.g., icons)
 ];
 
-// Install the service worker and cache the app shell
+// Install event: cache static assets
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('Opened cache');
-                return cache.addAll(urlsToCache);
+                console.log('Service Worker: Caching app shell');
+                return cache.addAll(STATIC_ASSETS);
             })
     );
 });
 
-// Intercept fetch requests and serve from cache
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                // Cache hit - return response
-                if (response) {
-                    return response;
-                }
-                // Not in cache - fetch from network
-                return fetch(event.request);
-            }
-        )
-    );
-});
-
-// Optional: Clean up old caches on activation
+// Activate event: clean up old caches
 self.addEventListener('activate', event => {
-    const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cacheName => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Service Worker: Clearing old cache', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
             );
         })
     );
+});
+
+// Fetch event: apply caching strategy
+self.addEventListener('fetch', event => {
+    // For navigation and static assets, use Cache First strategy.
+    if (STATIC_ASSETS.some(asset => event.request.url.endsWith(asset)) || event.request.mode === 'navigate') {
+        event.respondWith(
+            caches.match(event.request)
+                .then(cachedResponse => {
+                    return cachedResponse || fetch(event.request);
+                })
+        );
+    }
+    // For other requests (e.g., API calls in the future), one would use a Network First strategy.
+    // else {
+    //     event.respondWith(
+    //         fetch(event.request).catch(() => caches.match(event.request))
+    //     );
+    // }
 });
