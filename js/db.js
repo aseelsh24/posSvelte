@@ -1,9 +1,8 @@
 const DB = (() => {
-    const DB_NAME = 'baqalaDB_v2'; // Keeping name same, bumping version
-    const DB_VERSION = 2; // INCREMENTED VERSION
+    const DB_NAME = 'baqalaDB_v2';
+    const DB_VERSION = 2; // Keep version at 2 to trigger upgrade for users with broken v1
     let db;
 
-    // --- Helper for logging to the screen ---
     const log = (message) => {
         const logContainer = document.getElementById('status-log');
         if (logContainer) {
@@ -22,33 +21,27 @@ const DB = (() => {
                 db = event.target.result;
                 log('Database upgrade needed. Creating object stores...');
 
-                // Re-defining stores to ensure schema is updated correctly
                 const stores = [
                     { name: 'products', key: 'id', indexes: [{name: 'name'}, {name: 'barcode'}] },
                     { name: 'sales', key: 'id', indexes: [{name: 'timestamp'}, {name: 'customerId'}] },
                     { name: 'purchases', key: 'id', indexes: [{name: 'timestamp'}, {name: 'supplierId'}] },
                     { name: 'suppliers', key: 'id', indexes: [{name: 'name'}] },
                     { name: 'customers', key: 'id', indexes: [{name: 'name'}] },
-                    { name: 'users', key: 'id', indexes: [{name: 'username', unique: true}] }, // USERNAME IS NOW UNIQUE
+                    { name: 'users', key: 'id', indexes: [{name: 'username', unique: true}] },
                     { name: 'settings', key: 'key' },
                     { name: 'counters', key: 'id' }
                 ];
 
                 stores.forEach(s => {
-                    let store;
+                    // This simpler logic is more reliable for initial creation.
                     if (!db.objectStoreNames.contains(s.name)) {
-                        store = db.createObjectStore(s.name, { keyPath: s.key });
+                        const store = db.createObjectStore(s.name, { keyPath: s.key });
                         log(`- Object store '${s.name}' created.`);
-                    } else {
-                        store = event.target.transaction.objectStore(s.name);
-                    }
-
-                    s.indexes?.forEach(idx => {
-                        if (!store.indexNames.contains(idx.name)) {
+                        s.indexes?.forEach(idx => {
                             store.createIndex(idx.name, idx.name, { unique: !!idx.unique });
                             log(`- Index '${idx.name}' created on store '${s.name}'.`);
-                        }
-                    });
+                        });
+                    }
                 });
             };
 
@@ -93,8 +86,6 @@ const DB = (() => {
         });
     }
 
-    // --- Generic CRUD Functions ---
-
     function get(storeName, id) {
         return new Promise((resolve, reject) => {
             const store = getStore(storeName);
@@ -130,8 +121,6 @@ const DB = (() => {
             request.onerror = () => reject(request.error);
         });
     }
-
-    // --- Specific Getters ---
 
     function getUserByUsername(username) {
         return new Promise((resolve, reject) => {
