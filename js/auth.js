@@ -20,12 +20,15 @@ const Auth = (() => {
     // --- Public API ---
 
     async function login(username, pin) {
-        const user = await DB.getUserByUsername(username);
+        const trimmedUsername = username.trim();
+        const trimmedPin = pin.trim();
+
+        const user = await DB.getUserByUsername(trimmedUsername);
         if (!user) {
             throw new Error('المستخدم غير موجود.');
         }
 
-        const hashedPin = await hashPin(pin);
+        const hashedPin = await hashPin(trimmedPin);
         if (hashedPin !== user.pinHash) {
             throw new Error('رقم التعريف الشخصي (PIN) غير صحيح.');
         }
@@ -59,22 +62,25 @@ const Auth = (() => {
     }
 
     async function addUser(username, pin, role) {
-        if (!username || !pin || !role) {
+        const trimmedUsername = username.trim();
+        const trimmedPin = pin.trim();
+
+        if (!trimmedUsername || !trimmedPin || !role) {
             throw new Error('الرجاء إدخال جميع الحقول.');
         }
         if (!ROLES[role]) {
             throw new Error('الدور غير صالح.');
         }
 
-        const existingUser = await DB.getUserByUsername(username);
+        const existingUser = await DB.getUserByUsername(trimmedUsername);
         if (existingUser) {
             throw new Error('اسم المستخدم موجود بالفعل.');
         }
 
-        const pinHash = await hashPin(pin);
+        const pinHash = await hashPin(trimmedPin);
         const newUser = {
             id: `user-${Date.now()}`,
-            username,
+            username: trimmedUsername,
             pinHash,
             role,
             createdAt: new Date().toISOString()
@@ -87,12 +93,18 @@ const Auth = (() => {
         const user = await DB.get('users', userId);
         if (!user) throw new Error("المستخدم غير موجود.");
 
-        if (updates.pin) {
-            updates.pinHash = await hashPin(updates.pin);
-            delete updates.pin;
+        // Create a copy of updates to avoid modifying the original object
+        const newUpdates = { ...updates };
+
+        if (newUpdates.pin) {
+            newUpdates.pinHash = await hashPin(newUpdates.pin.trim());
+            delete newUpdates.pin;
+        }
+        if (newUpdates.username) {
+            newUpdates.username = newUpdates.username.trim();
         }
 
-        const updatedUser = { ...user, ...updates };
+        const updatedUser = { ...user, ...newUpdates };
         await DB.put('users', updatedUser);
         return updatedUser;
     }
